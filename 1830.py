@@ -1,8 +1,10 @@
 import re
 import requests
-from datetime import datetime
-import config  # Import the configuration file
-import math  # Import math for ceiling function
+from datetime import datetime, timedelta
+import math
+import config  # Make sure config file with API keys is available
+from contract import generate_contract
+
 
 def validate_phone_number(phone_number):
     return re.match(r'^\+|06|86\d{8,14}$', phone_number)
@@ -84,6 +86,17 @@ def get_company_details():
 
 def get_event_details():
     while True:
+        event_date = input("Enter the event date (yyyy-mm-dd): ")
+        if re.match(r'\d{4}-\d{2}-\d{2}', event_date):
+            try:
+                datetime.strptime(event_date, '%Y-%m-%d')
+                break
+            except ValueError:
+                print("Invalid date format. Please enter a valid date.")
+        else:
+            print("Invalid date format. Please enter in yyyy-mm-dd format.")
+
+    while True:
         venue = input("Enter the celebration venue (street name and house number, city): ")
         if re.match(r'^[\w\s\.]+,\s*[\w\s]+$', venue):
             break
@@ -143,6 +156,7 @@ def get_event_details():
     total_cost = math.ceil(base_cost + transport_cost + overtime_cost)
 
     return {
+        "Event date": event_date,
         "Venue": venue,
         "Number of guests": num_people,
         "Number of bartenders": num_bartenders,
@@ -206,7 +220,7 @@ def confirm_details(details):
             details[key_to_change] = new_value
 
             # Recalculate costs if any relevant detail was changed
-            if key_to_change in ["Venue", "Number of guests", "Working hours", "Overtime hours"]:
+            if key_to_change in ["Event date", "Venue", "Number of guests", "Working hours", "Overtime hours"]:
                 event_details = get_event_details()
                 details.update(event_details)
         else:
@@ -233,6 +247,8 @@ def main():
         pass
 
     print(f"The total cost for the event is: €{details['Total cost']}")
+
+    generate_contract(details)  
 
 if __name__ == "__main__":
     main()
