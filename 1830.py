@@ -1,9 +1,11 @@
+import os
 import re
 import requests
 from datetime import datetime, timedelta
 import math
-import config  # Make sure config file with API keys is available
+import config 
 import contract
+import person_deposit
 import smtplib
 import ssl
 from email.mime.multipart import MIMEMultipart
@@ -11,31 +13,41 @@ from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
 
-
 def validate_phone_number(phone_number):
     return re.match(r'^\+|06|86\d{8,14}$', phone_number)
 
 def get_personal_details():
-    first_name = input("Enter your first name: ")
-    last_name = input("Enter your last name: ")
+    first_name = input("Enter your first name: ").capitalize().strip()
+    last_name = input("Enter your last name: ").capitalize().strip()
 
     # Validate birth date
     while True:
-        birth_date = input("Enter your birth date (yyyy-mm-dd): ")
+        birth_date = input("Enter your birth date (yyyy-mm-dd): ").strip()
         if re.match(r'\d{4}-\d{2}-\d{2}', birth_date):
             try:
-                datetime.strptime(birth_date, '%Y-%m-%d')
-                break
+                birth_date_parsed = datetime.strptime(birth_date, '%Y-%m-%d')
+                today = datetime.today()
+                age = (today - birth_date_parsed).days // 365
+                if age >= 18:
+                    break
+                else:
+                    print("You must be at least 18 years old.")
             except ValueError:
                 print("Invalid date format. Please enter a valid date.")
         else:
             print("Invalid date format. Please enter in yyyy-mm-dd format.")
 
-    residency_address = input("Enter your residency address: ")
+
+    while True:
+        residency_address = input("Enter your residency address (street name and house number, city): ").strip()
+        if re.match(r'^[\w\s\.]+,\s*[\w\s]+$', residency_address):
+            break
+        else:
+            print("Invalid address format. Please enter in 'street name and house number, city' format. Example: Puodžių g. 20, Kaunas")
 
     # Validate phone number
     while True:
-        phone_number = input("Enter your phone number: ")
+        phone_number = input("Enter your phone number: ").strip()
         if validate_phone_number(phone_number):
             break
         else:
@@ -43,7 +55,7 @@ def get_personal_details():
 
     # Validate email
     while True:
-        email = input("Enter your email: ")
+        email = input("Enter your email: ").strip()
         if re.match(r'^[\w\.-]+@[\w\.-]+\.\w+$', email):
             break
         else:
@@ -59,11 +71,11 @@ def get_personal_details():
     }
 
 def get_company_details():
-    registration_number = input("Enter the company's registration number: ")
+    registration_number = input("Enter the company's registration number: ").strip()
 
-    company_name = input("Enter the company's name: ")
-    company_address = input("Enter the company's address: ")
-    vat_number = input("Enter the VAT number (optional): ")
+    company_name = input("Enter the company's name: ").strip()
+    company_address = input("Enter the company's address: ").strip()
+    vat_number = input("Enter the VAT number (optional): ").strip()
 
     # Validate phone number
     while True:
@@ -92,22 +104,26 @@ def get_company_details():
 
 def get_event_details():
     while True:
-        event_date = input("Enter the event date (yyyy-mm-dd): ")
+        event_date = input("Enter the event date (yyyy-mm-dd): ").strip()
         if re.match(r'\d{4}-\d{2}-\d{2}', event_date):
             try:
-                datetime.strptime(event_date, '%Y-%m-%d')
-                break
+                event_date_parsed = datetime.strptime(event_date, '%Y-%m-%d')
+                if event_date_parsed > datetime.now():
+                    break
+                else:
+                    print("The event date must be at least the next day from today.")
             except ValueError:
                 print("Invalid date format. Please enter a valid date.")
         else:
             print("Invalid date format. Please enter in yyyy-mm-dd format.")
 
     while True:
-        venue = input("Enter the celebration venue (street name and house number, city): ")
+        venue = input("Enter the celebration venue (street name and house number, city): ").strip()
         if re.match(r'^[\w\s\.]+,\s*[\w\s]+$', venue):
             break
         else:
-            print("Invalid venue format. Please enter in 'street name and house number, city' format.")
+            print("Invalid venue format. Please enter in 'street name and house number, city' format. Example: Puodžių g. 20, Kaunas")
+
 
     # Extract city
     city = venue.split(",")[-1].strip()
@@ -232,8 +248,7 @@ def confirm_details(details):
         else:
             print("Invalid input. Please enter yes or no.")
 
-
-def send_email(to_email, content, attachment_path):
+def send_email(to_email, content, attachment_path1, attachment_path2):
     from_email = config.FROM_EMAIL
     password = config.PASS_EMAIL
 
@@ -246,17 +261,29 @@ def send_email(to_email, content, attachment_path):
     # Attach the email body
     msg.attach(MIMEText(content, "plain"))
 
-    # Attach the PDF file
-    with open(attachment_path, "rb") as attachment:
-        part = MIMEBase("application", "octet-stream")
-        part.set_payload(attachment.read())
+    # Attach the first PDF file
+    with open(attachment_path1, "rb") as attachment1:
+        part1 = MIMEBase("application", "octet-stream")
+        part1.set_payload(attachment1.read())
 
-    encoders.encode_base64(part)
-    part.add_header(
+    encoders.encode_base64(part1)
+    part1.add_header(
         "Content-Disposition",
-        f"attachment; filename= {attachment_path}",
+        f'attachment; filename="{os.path.basename(attachment_path1)}"',
     )
-    msg.attach(part)
+    msg.attach(part1)
+
+    # Attach the second PDF file
+    with open(attachment_path2, "rb") as attachment2:
+        part2 = MIMEBase("application", "octet-stream")
+        part2.set_payload(attachment2.read())
+
+    encoders.encode_base64(part2)
+    part2.add_header(
+        "Content-Disposition",
+        f'attachment; filename="{os.path.basename(attachment_path2)}"',
+    )
+    msg.attach(part2)
 
     # Create SSL context
     context = ssl.create_default_context()
@@ -265,10 +292,9 @@ def send_email(to_email, content, attachment_path):
         with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
             server.login(from_email, password)
             server.sendmail(from_email, to_email, msg.as_string())
-            print("Contract sent successfully.")
+            print("Contract and invoice sent successfully.")
     except Exception as e:
         print(f"Failed to send email: {e}")
-
 
 def main():
     print("Is this a personal celebration or a company's party?")
@@ -294,8 +320,9 @@ def main():
 
     contract.generate_contract(details)
     contract_file = contract.generate_contract(details)
-    email_content = f"Sveiki,\n\nSiunčiame Jums sugeneruotą mobilaus baro sutartį Jūsų šventei kuri vyks {details['Event date']}.\n\nLinkėjimai,\nMB Double Vision"
-    send_email(details["Email"], email_content, contract_file)
+    invoice = person_deposit.generate_invoice(details)
+    email_content = f"Sveiki,\n\nSiunčiame Jums sugeneruotą mobilaus baro sutartį bei sąskaitą užstato apmokėjimui Jūsų šventei kuri vyks {details['Event date']}.\n\nLinkėjimai,\nMB Double Vision"
+    send_email(details["Email"], email_content, contract_file, invoice)
 
 if __name__ == "__main__":
     main()
