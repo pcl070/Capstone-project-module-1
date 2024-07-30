@@ -7,7 +7,8 @@ from reportlab.lib import colors
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfbase import pdfmetrics
 from reportlab.lib.units import cm
-from bar_1830 import get_personal_details
+import json
+import os
 
 # Register the DejaVuSans and DejaVuSans-Bold fonts
 pdfmetrics.registerFont(TTFont('DejaVuSans', 'DejaVuSans.ttf'))
@@ -18,7 +19,22 @@ def add_logo(canvas, logo_path):
     logo_y = 26 * cm  # Adjust according to where you want the logo placed
     canvas.drawImage(logo_path, logo_x, logo_y, width=1.65 * cm, height=2 * cm)
 
+def get_next_invoice_number(json_path='user_data.json'):
+    if not os.path.exists(json_path):
+        return 1
+    with open(json_path, 'r') as f:
+        try:
+            data = json.load(f)
+            invoice_numbers = [int(entry['Invoice Number'].split('/')[1]) for entry in data if 'Invoice Number' in entry]
+            if not invoice_numbers:
+                return 1
+            return max(invoice_numbers) + 1
+        except json.JSONDecodeError:
+            return 1
+
 def generate_invoice(details, deposit_amount=150):
+    invoice_number = get_next_invoice_number()
+    invoice_number_str = f"PROFORMA/{invoice_number:03d}"
     file_name = f"Invoice_{details['First name']}_{details['Last name']}.pdf"
     
     doc = SimpleDocTemplate(file_name, pagesize=A4, rightMargin=2*cm, leftMargin=2*cm, topMargin=2*cm, bottomMargin=2*cm)
@@ -55,7 +71,7 @@ def generate_invoice(details, deposit_amount=150):
     # Title
     elements.append(Paragraph("IŠANKSTINĖ SĄSKAITA", title_style))
     elements.append(Spacer(1, 12))
-    elements.append(Paragraph("Nr. PROFORMA/038", header_style))
+    elements.append(Paragraph(f"Nr. {invoice_number_str}", header_style))
     elements.append(Spacer(1, 12))
 
     # Dates
@@ -133,7 +149,7 @@ def generate_invoice(details, deposit_amount=150):
     doc.build(elements, onFirstPage=on_first_page)
 
     print(f"Invoice saved as {file_name}")
-    return file_name
+    return file_name, invoice_number_str
 
 def test_generate_invoice():
     # Sample data for testing
