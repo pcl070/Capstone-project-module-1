@@ -4,10 +4,12 @@ import requests
 from datetime import datetime, timedelta
 import math
 import config 
-import contract
+import person_contract
 import person_deposit
 import smtplib
 import ssl
+import json
+import uuid
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
@@ -296,6 +298,23 @@ def send_email(to_email, content, attachment_path1, attachment_path2):
     except Exception as e:
         print(f"Failed to send email: {e}")
 
+
+def save_to_json(details, invoice_number, file_path='user_data.json'):
+    details["ID"] = str(uuid.uuid4())
+    details["Invoice Number"] = invoice_number
+    if not os.path.exists(file_path):
+        with open(file_path, 'w') as f:
+            json.dump([details], f, indent=4)
+    else:
+        with open(file_path, 'r+') as f:
+            try:
+                data = json.load(f)
+            except json.JSONDecodeError:
+                data = []
+            data.append(details)
+            f.seek(0)
+            json.dump(data, f, indent=4)
+
 def main():
     print("Is this a personal celebration or a company's party?")
     print("1. Personal celebration (wedding/birthday/regular party)")
@@ -318,11 +337,12 @@ def main():
 
     print(f"The total cost for the event is: €{details['Total cost']}")
 
-    contract.generate_contract(details)
-    contract_file = contract.generate_contract(details)
-    invoice = person_deposit.generate_invoice(details)
+    contract_file = person_contract.generate_contract(details)
+    invoice, invoice_number = person_deposit.generate_invoice(details)
     email_content = f"Sveiki,\n\nSiunčiame Jums sugeneruotą mobilaus baro sutartį bei sąskaitą užstato apmokėjimui Jūsų šventei kuri vyks {details['Event date']}.\n\nLinkėjimai,\nMB Double Vision"
     send_email(details["Email"], email_content, contract_file, invoice)
+
+    save_to_json(details, invoice_number)
 
 if __name__ == "__main__":
     main()
