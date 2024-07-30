@@ -5,6 +5,8 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from datetime import datetime, timedelta
 from num2words import num2words
 
+
+
 def convert_cost_to_lithuanian_words(number):
     words = num2words(number, lang='en')
     translation_dict = {
@@ -59,7 +61,7 @@ def generate_contract(details):
     end_hours = details["Working hours"].split('-')[1]
     venue = details["Venue"]
     total_cost = details["Total cost"]
-    total_cost_words = convert_cost_to_lithuanian_words(total_cost) 
+    total_cost_words = convert_cost_to_lithuanian_words(total_cost)
 
     file_name = f"Baro nuomos sutartis {date_of_event_str} {first_name} {last_name}.pdf"
     doc = SimpleDocTemplate(file_name, pagesize=A4)
@@ -95,8 +97,6 @@ def generate_contract(details):
     elements.append(date_location)
     elements.append(Spacer(1, 12))
 
- 
-
     # Contract Content in Paragraphs
     content = [
         f"{first_name} {last_name}, gim. {birth_date}, gyv. {address} (toliau – Nuomininkas) ir Double Vision, MB, įm. k. 306318735, reg. adresas Žeimenos g. 82D-24, Kaunas (toliau – Nuomotojas) sudarė šią sutartį (toliau – Sutartis).",
@@ -115,8 +115,8 @@ def generate_contract(details):
         "5.1 Sutartis gali būti nutraukta:<br/>5.1.1 šalių susitarimu;<br/>5.1.2 vienašališkai vienos iš šalių prieš 1 sav. apie tai įspėjus kitą šalį.<br/>5.2 Užstato gražinimas dėl sutarties nutraukimo:<br/>5.2.1 jei sutartį nutraukia nuomininkas, tuomet nuomotojas negrąžina 150 € užstato;<br/>5.2.2 jei sutartį nutraukia nuomuotojas, tuomet jis įpareigotas nuomininkui gražinti 150 € užstatą.<br/>5.2.3 jei sutartis nutraukiama dėl Force majeure nuomuotojas įpareigotas nuomininkui grąžinti 150 € užstatą.",
         "<b>6. Baigiamosios nuostatos</b>",
         "6.1 Sutartis abiejų šalių bus pasirašyta naudojant elektroninį parašą „DokoBit“ sistemoje<br/>6.2 Bet kokie sutarties papildymai ar pakeitimai galioja tik tada, kai yra raštu sudaryti abiejų Šalių ar jų įgaliotų atstovų.<br/>6.3 Šioje sutartyje nenumatytos sąlygos nustatomos vadovaujantis Lietuvos Respublikos įstatymais.<br/>6.4 Sutartis sudaryta dviem egzemplioriais - po vieną kiekvienai šaliai.",
-        f"Nuomininkas<br/>{first_name} {last_name}<br/>{phone}<br/>{email}",
-        "Nuomotojas<br/>Viktoras Pčalinas<br/>MB Double Vision<br/>+37065454447"
+        f"Nuomininkas:<br/>{first_name} {last_name}<br/>{phone}<br/>{email}",
+        "Nuomotojas:<br/>Viktoras Pčalinas<br/>MB Double Vision<br/>+37065454447"
     ]
 
     for paragraph in content:
@@ -125,26 +125,30 @@ def generate_contract(details):
 
     doc.build(elements)
     print(f"Contract saved as {file_name}")
+    return file_name
+
+
 
 if __name__ == "__main__":
     # Define some example details
-    details = {
-        "First name": "John",
-        "Last name": "Doe",
-        "Birth date": "1990-01-01",
-        "Residency Address": "123 Main St",
-        "Phone Number": "+37012345678",
-        "Email": "john.doe@example.com",
-        "Event date": "2024-08-01",
-        "Venue": "Kauno g. 5, Kaunas",
-        "Number of guests": 50,
-        "Number of bartenders": 2,
-        "Number of barbacks": 0,
-        "Working hours": "17:00-01:00",
-        "Overtime hours": 2,
-        "Total cost": 899,
-        "Base cost": 650,
-        "Transport cost": 50,
-        "Overtime cost": 100,
-    }
-    generate_contract(details)
+    # details = {
+    #     "First name": "John",
+    #     "Last name": "Doe",
+    #     "Birth date": "1990-01-01",
+    #     "Residency Address": "123 Main St",
+    #     "Phone Number": "+37012345678",
+    #     "Email": "andrius.pcalinas@gmail.com",
+    #     "Event date": "2024-08-01",
+    #     "Venue": "Kauno g. 5, Kaunas",
+    #     "Number of guests": 50,
+    #     "Number of bartenders": 2,
+    #     "Number of barbacks": 0,
+    #     "Working hours": "17:00-01:00",
+    #     "Overtime hours": 2,
+    #     "Total cost": 899,
+    #     "Base cost": 650,
+    #     "Transport cost": 50,
+    #     "Overtime cost": 100,
+    # }
+    contract_file = generate_contract(details)
+  
