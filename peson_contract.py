@@ -2,10 +2,13 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfbase import pdfmetrics
 from datetime import datetime, timedelta
 from num2words import num2words
 
-
+# Register the DejaVuSans font
+pdfmetrics.registerFont(TTFont('DejaVuSans', 'DejaVuSans.ttf'))
 
 def convert_cost_to_lithuanian_words(number):
     words = num2words(number, lang='en')
@@ -44,8 +47,18 @@ def convert_cost_to_lithuanian_words(number):
         "billion": "milijardas",
         "and": "ir"
     }
-    lithuanian_words = ' '.join(translation_dict.get(word, word) for word in words.split())
-    return lithuanian_words
+
+    translated_words = []
+    for word in words.split():
+        # Split hyphenated compound words (e.g., "twenty-one")
+        if '-' in word:
+            parts = word.split('-')
+            translated_parts = [translation_dict.get(part, part) for part in parts]
+            translated_words.append(' '.join(translated_parts))
+        else:
+            translated_words.append(translation_dict.get(word, word))
+    return ' '.join(translated_words)
+
 
 def generate_contract(details):
     first_name = details["First name"]
@@ -70,7 +83,7 @@ def generate_contract(details):
     # Custom style for contract text
     contract_style = ParagraphStyle(
         'Contract',
-        fontName='Helvetica',
+        fontName='DejaVuSans',
         fontSize=12,
         leading=14,
         spaceAfter=12
@@ -78,7 +91,7 @@ def generate_contract(details):
 
     centered_style = ParagraphStyle(
         'Centered',
-        fontName='Helvetica',
+        fontName='DejaVuSans',
         fontSize=12,
         leading=16,
         alignment=1,  # Center alignment
@@ -127,28 +140,25 @@ def generate_contract(details):
     print(f"Contract saved as {file_name}")
     return file_name
 
-
-
 if __name__ == "__main__":
-    # Define some example details
-    # details = {
-    #     "First name": "John",
-    #     "Last name": "Doe",
-    #     "Birth date": "1990-01-01",
-    #     "Residency Address": "123 Main St",
-    #     "Phone Number": "+37012345678",
-    #     "Email": "andrius.pcalinas@gmail.com",
-    #     "Event date": "2024-08-01",
-    #     "Venue": "Kauno g. 5, Kaunas",
-    #     "Number of guests": 50,
-    #     "Number of bartenders": 2,
-    #     "Number of barbacks": 0,
-    #     "Working hours": "17:00-01:00",
-    #     "Overtime hours": 2,
-    #     "Total cost": 899,
-    #     "Base cost": 650,
-    #     "Transport cost": 50,
-    #     "Overtime cost": 100,
-    # }
+    #Define some example details
+    details = {
+        "First name": "John",
+        "Last name": "Doe",
+        "Birth date": "1990-01-01",
+        "Residency Address": "123 Main St",
+        "Phone Number": "+37012345678",
+        "Email": "andrius.pcalinas@gmail.com",
+        "Event date": "2024-08-01",
+        "Venue": "Kauno g. 5, Kaunas",
+        "Number of guests": 50,
+        "Number of bartenders": 2,
+        "Number of barbacks": 0,
+        "Working hours": "17:00-01:00",
+        "Overtime hours": 2,
+        "Total cost": 899,
+        "Base cost": 650,
+        "Transport cost": 50,
+        "Overtime cost": 100,
+    }
     contract_file = generate_contract(details)
-  
