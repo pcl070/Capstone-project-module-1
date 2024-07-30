@@ -3,7 +3,13 @@ import requests
 from datetime import datetime, timedelta
 import math
 import config  # Make sure config file with API keys is available
-from contract import generate_contract
+import contract
+import smtplib
+import ssl
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.base import MIMEBase
+from email import encoders
 
 
 def validate_phone_number(phone_number):
@@ -226,6 +232,44 @@ def confirm_details(details):
         else:
             print("Invalid input. Please enter yes or no.")
 
+
+def send_email(to_email, content, attachment_path):
+    from_email = config.FROM_EMAIL
+    password = config.PASS_EMAIL
+
+    # Create the email header
+    msg = MIMEMultipart()
+    msg["From"] = from_email
+    msg["To"] = to_email
+    msg["Subject"] = "Event Details and Contract"
+
+    # Attach the email body
+    msg.attach(MIMEText(content, "plain"))
+
+    # Attach the PDF file
+    with open(attachment_path, "rb") as attachment:
+        part = MIMEBase("application", "octet-stream")
+        part.set_payload(attachment.read())
+
+    encoders.encode_base64(part)
+    part.add_header(
+        "Content-Disposition",
+        f"attachment; filename= {attachment_path}",
+    )
+    msg.attach(part)
+
+    # Create SSL context
+    context = ssl.create_default_context()
+
+    try:
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
+            server.login(from_email, password)
+            server.sendmail(from_email, to_email, msg.as_string())
+            print("Contract sent successfully.")
+    except Exception as e:
+        print(f"Failed to send email: {e}")
+
+
 def main():
     print("Is this a personal celebration or a company's party?")
     print("1. Personal celebration (wedding/birthday/regular party)")
@@ -248,7 +292,10 @@ def main():
 
     print(f"The total cost for the event is: €{details['Total cost']}")
 
-    generate_contract(details)  
+    contract.generate_contract(details)
+    contract_file = contract.generate_contract(details)
+    email_content = f"Sveiki,\n\nSiunčiame Jums sugeneruotą mobilaus baro sutartį Jūsų šventei kuri vyks {details['Event date']}.\n\nLinkėjimai,\nMB Double Vision"
+    send_email(details["Email"], email_content, contract_file)
 
 if __name__ == "__main__":
     main()
