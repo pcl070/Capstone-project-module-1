@@ -1,9 +1,10 @@
 import os
 import re
+import random
 import requests
 from datetime import datetime, timedelta
 import math
-import config 
+import config
 import person_contract
 import person_deposit
 import smtplib
@@ -14,9 +15,12 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
+import sys
+
 
 def validate_phone_number(phone_number):
-    return re.match(r'^\+|06|86\d{8,14}$', phone_number)
+    return re.match(r"^\+|06|86\d{8,14}$", phone_number)
+
 
 def get_personal_details():
     first_name = input("Enter your first name: ").capitalize().strip()
@@ -25,9 +29,9 @@ def get_personal_details():
     # Validate birth date
     while True:
         birth_date = input("Enter your birth date (yyyy-mm-dd): ").strip()
-        if re.match(r'\d{4}-\d{2}-\d{2}', birth_date):
+        if re.match(r"\d{4}-\d{2}-\d{2}", birth_date):
             try:
-                birth_date_parsed = datetime.strptime(birth_date, '%Y-%m-%d')
+                birth_date_parsed = datetime.strptime(birth_date, "%Y-%m-%d")
                 today = datetime.today()
                 age = (today - birth_date_parsed).days // 365
                 if age >= 18:
@@ -39,13 +43,16 @@ def get_personal_details():
         else:
             print("Invalid date format. Please enter in yyyy-mm-dd format.")
 
-
     while True:
-        residency_address = input("Enter your residency address (street name and house number, city): ").strip()
-        if re.match(r'^[\w\s\.]+,\s*[\w\s]+$', residency_address):
+        residency_address = input(
+            "Enter your residency address (street name and house number, city): "
+        ).strip()
+        if re.match(r"^[\w\s\.]+,\s*[\w\s]+$", residency_address):
             break
         else:
-            print("Invalid address format. Please enter in 'street name and house number, city' format. Example: Puodžių g. 20, Kaunas")
+            print(
+                "Invalid address format. Please enter in 'street name and house number, city' format. Example: Puodžių g. 20, Kaunas"
+            )
 
     # Validate phone number
     while True:
@@ -53,12 +60,14 @@ def get_personal_details():
         if validate_phone_number(phone_number):
             break
         else:
-            print("Invalid phone number. Please enter a valid phone number that starts with '+', '06', or '86'.")
+            print(
+                "Invalid phone number. Please enter a valid phone number that starts with '+', '06', or '86'."
+            )
 
     # Validate email
     while True:
         email = input("Enter your email: ").strip()
-        if re.match(r'^[\w\.-]+@[\w\.-]+\.\w+$', email):
+        if re.match(r"^[\w\.-]+@[\w\.-]+\.\w+$", email):
             break
         else:
             print("Invalid email address. Please enter a valid email.")
@@ -69,8 +78,9 @@ def get_personal_details():
         "Birth date": birth_date,
         "Residency Address": residency_address,
         "Phone Number": phone_number,
-        "Email": email
+        "Email": email,
     }
+
 
 def get_company_details():
     registration_number = input("Enter the company's registration number: ").strip()
@@ -85,12 +95,14 @@ def get_company_details():
         if validate_phone_number(phone_number):
             break
         else:
-            print("Invalid phone number. Please enter a valid phone number that starts with '+', '06', or '86'.")
+            print(
+                "Invalid phone number. Please enter a valid phone number that starts with '+', '06', or '86'."
+            )
 
     # Validate email
     while True:
         email = input("Enter the company's email: ")
-        if re.match(r'^[\w\.-]+@[\w\.-]+\.\w+$', email):
+        if re.match(r"^[\w\.-]+@[\w\.-]+\.\w+$", email):
             break
         else:
             print("Invalid email address. Please enter a valid email.")
@@ -101,15 +113,16 @@ def get_company_details():
         "Company address": company_address,
         "VAT number": vat_number,
         "Phone number": phone_number,
-        "Email": email
+        "Email": email,
     }
+
 
 def get_event_details():
     while True:
         event_date = input("Enter the event date (yyyy-mm-dd): ").strip()
-        if re.match(r'\d{4}-\d{2}-\d{2}', event_date):
+        if re.match(r"\d{4}-\d{2}-\d{2}", event_date):
             try:
-                event_date_parsed = datetime.strptime(event_date, '%Y-%m-%d')
+                event_date_parsed = datetime.strptime(event_date, "%Y-%m-%d")
                 if event_date_parsed > datetime.now():
                     break
                 else:
@@ -120,28 +133,54 @@ def get_event_details():
             print("Invalid date format. Please enter in yyyy-mm-dd format.")
 
     while True:
-        venue = input("Enter the celebration venue (street name and house number, city): ").strip()
-        if re.match(r'^[\w\s\.]+,\s*[\w\s]+$', venue):
+        venue = input(
+            "Enter the celebration venue (street name and house number, city): "
+        ).strip()
+        if re.match(r"^[\w\s\.]+,\s*[\w\s]+$", venue):
             break
         else:
-            print("Invalid venue format. Please enter in 'street name and house number, city' format. Example: Puodžių g. 20, Kaunas")
-
+            print(
+                "Invalid venue format. Please enter in 'street name and house number, city' format. Example: Puodžių g. 20, Kaunas"
+            )
 
     # Extract city
     city = venue.split(",")[-1].strip()
     distance_from_kaunas = 0
 
-    if city.lower() != "kaunas":
+    while city.lower() != "kaunas":
         distance_from_kaunas = get_distance_from_kaunas(city)
-        transport_cost = distance_from_kaunas * 0.3
+        if distance_from_kaunas is not None:
+            transport_cost = distance_from_kaunas * 0.3
+            break
+        else:
+            print("The city you entered could not be found. Please enter a valid city.")
+            while True:
+                venue = input(
+                    "Enter the celebration venue (street name and house number, city): "
+                ).strip()
+                if re.match(r"^[\w\s\.]+,\s*[\w\s]+$", venue):
+                    break
+                else:
+                    print(
+                        "Invalid venue format. Please enter in 'street name and house number, city' format. Example: Puodžių g. 20, Kaunas"
+                    )
+            city = venue.split(",")[-1].strip()
+
     else:
         transport_cost = 0
 
     # Ask for the number of people
     while True:
         try:
-            num_people = int(input("Enter the number of people attending: "))
-            break
+            num_people = int(
+                input("Enter the number of people attending (maximum 200): ")
+            )
+            if 1 <= num_people <= 200:
+                break
+            else:
+                print(
+                    "We can not serve that many guests. Please enter a number between 1 and 200."
+                )
         except ValueError:
             print("Invalid number. Please enter a valid number.")
 
@@ -162,7 +201,9 @@ def get_event_details():
         base_cost = 1400
 
     working_hours = "17:00-01:00"
-    change_hours = input("Do you want to change the working hours? (yes/no): ").strip().lower()
+    change_hours = (
+        input("Do you want to change the working hours? (yes/no): ").strip().lower()
+    )
     if change_hours == "yes":
         working_hours = input("Enter the new working hours (e.g., 18:00-02:00): ")
 
@@ -194,6 +235,7 @@ def get_event_details():
         "Overtime cost": overtime_cost,
     }
 
+
 def get_distance_from_kaunas(city):
     api_key = config.DISTANCE_MATRIX_API_KEY
     base_url = "https://api.distancematrix.ai/maps/api/distancematrix/json"
@@ -202,26 +244,40 @@ def get_distance_from_kaunas(city):
         "destinations": city,
         "departure_time": "now",
         "units": "metric",
-        "key": api_key
+        "key": api_key,
     }
     response = requests.get(base_url, params=params)
     if response.status_code == 200:
         data = response.json()
-        if data['rows'][0]['elements'][0]['status'] == 'OK':
-            distance_in_meters = data['rows'][0]['elements'][0]['distance']['value']
+        if data["rows"][0]["elements"][0]["status"] == "OK":
+            distance_in_meters = data["rows"][0]["elements"][0]["distance"]["value"]
             return distance_in_meters / 1000  # Convert to kilometers
         else:
-            print("Error in response:", data['rows'][0]['elements'][0]['status'])
+            print("Error in response:", data["rows"][0]["elements"][0]["status"])
             return None
     else:
         print("Failed to connect to API")
         return None
 
+
 def confirm_details(details):
     while True:
         # Show the details without num_bartenders, num_barbacks, city, total_cost
         print("\nPlease review your details:")
-        filtered_details = {k: v for k, v in details.items() if k not in ["Number of bartenders", "Number of barbacks", "City", "Total cost", "Base cost", "Transport cost", "Overtime cost"]}
+        filtered_details = {
+            k: v
+            for k, v in details.items()
+            if k
+            not in [
+                "Number of bartenders",
+                "Number of barbacks",
+                "City",
+                "Total cost",
+                "Base cost",
+                "Transport cost",
+                "Overtime cost",
+            ]
+        }
         for idx, (key, value) in enumerate(filtered_details.items(), 1):
             print(f"{idx}. {key}: {value}")
 
@@ -231,7 +287,9 @@ def confirm_details(details):
         elif valid == "no":
             while True:
                 try:
-                    line_to_change = int(input("Enter the line number you want to change: "))
+                    line_to_change = int(
+                        input("Enter the line number you want to change: ")
+                    )
                     if 1 <= line_to_change <= len(filtered_details):
                         break
                     else:
@@ -244,11 +302,18 @@ def confirm_details(details):
             details[key_to_change] = new_value
 
             # Recalculate costs if any relevant detail was changed
-            if key_to_change in ["Event date", "Venue", "Number of guests", "Working hours", "Overtime hours"]:
+            if key_to_change in [
+                "Event date",
+                "Venue",
+                "Number of guests",
+                "Working hours",
+                "Overtime hours",
+            ]:
                 event_details = get_event_details()
                 details.update(event_details)
         else:
             print("Invalid input. Please enter yes or no.")
+
 
 def send_email(to_email, content, attachment_path1, attachment_path2):
     from_email = config.FROM_EMAIL
@@ -299,14 +364,33 @@ def send_email(to_email, content, attachment_path1, attachment_path2):
         print(f"Failed to send email: {e}")
 
 
-def save_to_json(details, invoice_number, file_path='user_data.json'):
-    details["ID"] = str(uuid.uuid4())
-    details["Invoice Number"] = invoice_number
+def generate_random_id(existing_ids):
+    while True:
+        new_id = random.randint(10000, 99999)
+        if new_id not in existing_ids:
+            return new_id
+
+
+def save_to_json(details, invoice_number, file_path="user_data.json"):
     if not os.path.exists(file_path):
-        with open(file_path, 'w') as f:
+        existing_ids = set()
+    else:
+        with open(file_path, "r") as f:
+            try:
+                data = json.load(f)
+                existing_ids = {entry["ID"] for entry in data}
+            except (json.JSONDecodeError, KeyError):
+                existing_ids = set()
+
+    new_id = generate_random_id(existing_ids)
+    details["ID"] = new_id
+    details["Invoice Number"] = invoice_number
+
+    if not os.path.exists(file_path):
+        with open(file_path, "w") as f:
             json.dump([details], f, indent=4)
     else:
-        with open(file_path, 'r+') as f:
+        with open(file_path, "r+") as f:
             try:
                 data = json.load(f)
             except json.JSONDecodeError:
@@ -315,15 +399,43 @@ def save_to_json(details, invoice_number, file_path='user_data.json'):
             f.seek(0)
             json.dump(data, f, indent=4)
 
-def main():
+
+def load_user_data(file_path="user_data.json"):
+    if not os.path.exists(file_path):
+        return []
+    with open(file_path, "r") as f:
+        try:
+            return json.load(f)
+        except json.JSONDecodeError:
+            return []
+
+
+def save_user_data(data, file_path="user_data.json"):
+    with open(file_path, "w") as f:
+        json.dump(data, f, indent=4)
+
+
+def login():
+    user_data = load_user_data()
+    user_id = input("Enter your ID: ").strip()
+    if user_id == config.ADMIN_ID:
+        return {"ID": config.ADMIN_ID, "Role": "Admin"}
+    for user in user_data:
+        if str(user["ID"]) == user_id:
+            return user
+    print("ID not found. Please try again or register.")
+    return None
+
+
+def register():
     print("Is this a personal celebration or a company's party?")
     print("1. Personal celebration (wedding/birthday/regular party)")
     print("2. Company's party")
     choice = input("Enter 1 or 2: ")
 
-    if choice == '1':
+    if choice == "1":
         details = get_personal_details()
-    elif choice == '2':
+    elif choice == "2":
         details = get_company_details()
     else:
         print("Invalid choice.")
@@ -343,6 +455,147 @@ def main():
     send_email(details["Email"], email_content, contract_file, invoice)
 
     save_to_json(details, invoice_number)
+
+    print(f"\nYOUR LOGIN ID IS {details['ID']}\n")
+
+
+def display_menu():
+    print("\nMenu:")
+    print("1. Sign contract")
+    print("2. Pay deposit for event")
+    print("3. Select cocktails/change cocktails")
+    print("4. View details of personal and event data")
+    print("5. Change details of personal and event data")
+    print("6. Cancel booking and delete account")
+    print("7. Exit")
+
+
+def handle_menu_choice(user):
+    while True:
+        display_menu()
+        choice = input("Enter your choice: ").strip()
+        if choice == "1":
+            print("Sign contract selected.")
+            # Implement signing contract
+        elif choice == "2":
+            print("Pay deposit for event selected.")
+            # Implement paying deposit
+        elif choice == "3":
+            print("Select/change cocktails selected.")
+            # Implement selecting/changing cocktails
+        elif choice == "4":
+            print("View details of personal and event data selected.")
+            # Implement viewing details
+        elif choice == "5":
+            print("Change details of personal and event data selected.")
+            # Implement changing details
+        elif choice == "6":
+            print("Cancel booking and delete account selected.")
+            # Implement cancelling booking and deleting account
+            return False
+        elif choice == "7":
+            print("Exiting...")
+            return False
+        else:
+            print("Invalid choice. Please try again.")
+
+
+def view_all_bookings():
+    user_data = load_user_data()
+    if not user_data:
+        print("No bookings found.")
+        return
+    for user in user_data:
+        print(f"ID: {user['ID']}, Name: {user['First name']} {user['Last name']}")
+
+
+def view_booking_by_id():
+    user_data = load_user_data()
+    user_id = input("Enter the booking ID to view: ").strip()
+    for user in user_data:
+        if str(user["ID"]) == user_id:
+            print(json.dumps(user, indent=4))
+            return
+    print("Booking ID not found.")
+
+
+def delete_booking():
+    user_data = load_user_data()
+    user_id = input("Enter the booking ID to delete: ").strip()
+    for user in user_data:
+        if str(user["ID"]) == user_id:
+            user_data.remove(user)
+            save_user_data(user_data)
+            print("Booking deleted.")
+            return
+    print("Booking ID not found.")
+
+
+def change_booking_info():
+    user_data = load_user_data()
+    user_id = input("Enter the booking ID to change: ").strip()
+    for user in user_data:
+        if str(user["ID"]) == user_id:
+            print("Current booking details:")
+            print(json.dumps(user, indent=4))
+            # Implement the logic to change booking details here
+            print("Feature to change booking info is not yet implemented.")
+            return
+    print("Booking ID not found.")
+
+
+def display_admin_menu():
+    print("\nAdmin Menu:")
+    print("1. View all bookings")
+    print("2. See specific booking's info according to ID")
+    print("3. Delete a booking/user")
+    print("4. Change booking's info")
+    print("5. Exit")
+
+
+def handle_admin_menu_choice():
+    while True:
+        display_admin_menu()
+        choice = input("Enter your choice: ").strip()
+        if choice == "1":
+            view_all_bookings()
+        elif choice == "2":
+            view_booking_by_id()
+        elif choice == "3":
+            delete_booking()
+        elif choice == "4":
+            change_booking_info()
+        elif choice == "5":
+            print("Exiting admin menu...")
+            return False
+        else:
+            print("Invalid choice. Please try again.")
+
+
+def main():
+    user = None
+    while user is None:
+        print("Welcome! Please log in or register to continue.")
+        print("1. Log in")
+        print("2. Register")
+        print("3. Quit")
+        choice = input("Enter 1, 2 or 3: ").strip()
+
+        if choice == "1":
+            user = login()
+        elif choice == "2":
+            user = register()
+        elif choice == "3":
+            print("Exiting program...")
+            sys.exit(1)
+        else:
+            print("Invalid choice. Please enter 1 or 2.")
+    if user["ID"] == config.ADMIN_ID:
+        handle_admin_menu_choice()
+    else:
+        print(f"Welcome, {user['First name']} {user['Last name']}!")
+        handle_menu_choice(user)
+
 
 if __name__ == "__main__":
     main()
