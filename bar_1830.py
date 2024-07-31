@@ -83,38 +83,8 @@ def get_personal_details():
 
 
 def get_company_details():
-    registration_number = input("Enter the company's registration number: ").strip()
-
-    company_name = input("Enter the company's name: ").strip()
-    company_address = input("Enter the company's address: ").strip()
-    vat_number = input("Enter the VAT number (optional): ").strip()
-
-    # Validate phone number
-    while True:
-        phone_number = input("Enter the company's phone number: ")
-        if validate_phone_number(phone_number):
-            break
-        else:
-            print(
-                "Invalid phone number. Please enter a valid phone number that starts with '+', '06', or '86'."
-            )
-
-    # Validate email
-    while True:
-        email = input("Enter the company's email: ")
-        if re.match(r"^[\w\.-]+@[\w\.-]+\.\w+$", email):
-            break
-        else:
-            print("Invalid email address. Please enter a valid email.")
-
-    return {
-        "Registration number": registration_number,
-        "Company name": company_name,
-        "Company address": company_address,
-        "VAT number": vat_number,
-        "Phone number": phone_number,
-        "Email": email,
-    }
+    print("\n**This function is yet to be implemented :) For now choose 'Personal celebration'**\n")
+    register()
 
 
 def get_event_details():
