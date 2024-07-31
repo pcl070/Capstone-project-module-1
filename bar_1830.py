@@ -175,6 +175,7 @@ def get_event_details():
         input("Do you want to change the working hours? (yes/no): ").strip().lower()
     )
     if change_hours == "yes":
+        print("Maximum amount of work is 8 hours. If exceeded admin will delete your reservation without returning the deposit!")
         working_hours = input(
             "Enter the new working hours (e.g., 18:00-02:00): ")
 
@@ -233,60 +234,6 @@ def get_distance_from_kaunas(city):
         print("Failed to connect to API")
         return None
 
-
-def confirm_details(details):
-    while True:
-        # Show the details without num_bartenders, num_barbacks, city, total_cost
-        print("\nPlease review your details:")
-        filtered_details = {
-            k: v
-            for k, v in details.items()
-            if k
-            not in [
-                "Number of bartenders",
-                "Number of barbacks",
-                "City",
-                "Total cost",
-                "Base cost",
-                "Transport cost",
-                "Overtime cost",
-            ]
-        }
-        for idx, (key, value) in enumerate(filtered_details.items(), 1):
-            print(f"{idx}. {key}: {value}")
-
-        valid = input("\nIs everything correct? (yes/no): ").strip().lower()
-        if valid == "yes":
-            return True
-        elif valid == "no":
-            while True:
-                try:
-                    line_to_change = int(
-                        input("Enter the line number you want to change: ")
-                    )
-                    if 1 <= line_to_change <= len(filtered_details):
-                        break
-                    else:
-                        print("Invalid line number.")
-                except ValueError:
-                    print("Invalid input. Please enter a valid line number.")
-
-            key_to_change = list(filtered_details.keys())[line_to_change - 1]
-            new_value = input(f"Enter new value for {key_to_change}: ")
-            details[key_to_change] = new_value
-
-            # Recalculate costs if any relevant detail was changed
-            if key_to_change in [
-                "Event date",
-                "Venue",
-                "Number of guests",
-                "Working hours",
-                "Overtime hours",
-            ]:
-                event_details = get_event_details()
-                details.update(event_details)
-        else:
-            print("Invalid input. Please enter yes or no.")
 
 
 def send_email(to_email, content, attachment_path1, attachment_path2=None):
@@ -613,8 +560,6 @@ def register():
     event_details = get_event_details()
     details.update(event_details)
 
-    while not confirm_details(details):
-        pass
 
     print(f"The total cost for the event is: €{details['Total cost']}")
 
@@ -627,7 +572,7 @@ def register():
     details["Deposit paid"] = False
     save_to_json(details, invoice_number)
 
-    print(f"\nYOUR LOGIN ID IS {details['ID']}\n")
+    print(f"\nYOUR LOGIN ID IS {details['ID']}\n\nFOR EDITING YOUR DETAILS FOLLOW INSTRUCTIONS IN THE MENU\n")
     return details  
 
 
@@ -822,7 +767,3 @@ def main():
 if __name__ == "__main__":
     main()
 
-
-
-if __name__ == "__main__":
-    main()
