@@ -604,7 +604,8 @@ def register():
     if choice == "1":
         details = get_personal_details()
     elif choice == "2":
-        details = get_company_details()
+        print("\n**This function is yet to be implemented :) For now choose 'Personal celebration'**\n")
+        details = get_personal_details()  
     else:
         print("Invalid choice.")
         return
@@ -627,6 +628,8 @@ def register():
     save_to_json(details, invoice_number)
 
     print(f"\nYOUR LOGIN ID IS {details['ID']}\n")
+    return details  
+
 
 
 def display_menu():
@@ -809,11 +812,16 @@ def main():
             sys.exit(1)
         else:
             print("Invalid choice. Please enter 1 or 2.")
-    if user["ID"] == config.ADMIN_ID:
+    
+    if user and user.get("ID") == config.ADMIN_ID:
         handle_admin_menu_choice()
     else:
         print(f"Welcome, {user['First name']} {user['Last name']}!")
         handle_menu_choice(user)
+
+if __name__ == "__main__":
+    main()
+
 
 
 if __name__ == "__main__":
