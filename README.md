@@ -29,8 +29,8 @@
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/1830-mobile-bar.git
-   cd 1830-mobile-bar
+   git clone https://github.com/pcl070/Capstone-project-module-1.git
+   cd Capstone-project-module-1
    ```
 ## Set up a virtual environment and install dependencies:
 
