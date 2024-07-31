@@ -10,14 +10,16 @@ from reportlab.lib.units import cm
 import json
 import os
 
-# Register the DejaVuSans and DejaVuSans-Bold fonts
+
 pdfmetrics.registerFont(TTFont('DejaVuSans', 'DejaVuSans.ttf'))
 pdfmetrics.registerFont(TTFont('DejaVuSans-Bold', 'DejaVuSans-Bold.ttf'))
 
+
 def add_logo(canvas, logo_path):
     logo_x = 2 * cm
-    logo_y = 26 * cm  # Adjust according to where you want the logo placed
+    logo_y = 26 * cm
     canvas.drawImage(logo_path, logo_x, logo_y, width=1.65 * cm, height=2 * cm)
+
 
 def get_next_invoice_number(json_path='user_data.json'):
     if not os.path.exists(json_path):
@@ -25,19 +27,22 @@ def get_next_invoice_number(json_path='user_data.json'):
     with open(json_path, 'r') as f:
         try:
             data = json.load(f)
-            invoice_numbers = [int(entry['Invoice Number'].split('/')[1]) for entry in data if 'Invoice Number' in entry]
+            invoice_numbers = [int(entry['Invoice Number'].split(
+                '/')[1]) for entry in data if 'Invoice Number' in entry]
             if not invoice_numbers:
                 return 1
             return max(invoice_numbers) + 1
         except json.JSONDecodeError:
             return 1
 
+
 def generate_invoice(details, deposit_amount=150):
     invoice_number = get_next_invoice_number()
     invoice_number_str = f"PROFORMA/{invoice_number:03d}"
     file_name = f"Invoice_{details['First name']}_{details['Last name']}.pdf"
-    
-    doc = SimpleDocTemplate(file_name, pagesize=A4, rightMargin=2*cm, leftMargin=2*cm, topMargin=2*cm, bottomMargin=2*cm)
+
+    doc = SimpleDocTemplate(file_name, pagesize=A4, rightMargin=2*cm,
+                            leftMargin=2*cm, topMargin=2*cm, bottomMargin=2*cm)
     styles = getSampleStyleSheet()
     elements = []
 
@@ -66,7 +71,7 @@ def generate_invoice(details, deposit_amount=150):
 
     # Add logo using canvas
     def on_first_page(canvas, doc):
-        add_logo(canvas, "logo.png")  # Replace with your logo file path
+        add_logo(canvas, "logo.png")
 
     # Title
     elements.append(Paragraph("IŠANKSTINĖ SĄSKAITA", title_style))
@@ -76,7 +81,8 @@ def generate_invoice(details, deposit_amount=150):
 
     # Dates
     today_date = datetime.today().strftime('%Y-%m-%d')
-    pay_until_date = (datetime.today() + timedelta(days=7)).strftime('%Y-%m-%d')
+    pay_until_date = (datetime.today() + timedelta(days=7)
+                      ).strftime('%Y-%m-%d')
     elements.append(Paragraph(f"Data: {today_date}", normal_style))
     elements.append(Paragraph(f"Apmokėti iki: {pay_until_date}", normal_style))
     elements.append(Spacer(1, 12))
@@ -108,7 +114,8 @@ def generate_invoice(details, deposit_amount=150):
 
     # Creating a table to align seller and client information side by side
     info_table = Table(
-        [[Paragraph(seller_info, normal_style), Paragraph(client_info, normal_style)]],
+        [[Paragraph(seller_info, normal_style),
+          Paragraph(client_info, normal_style)]],
         colWidths=[10 * cm, 8 * cm]
     )
     info_table.setStyle(TableStyle([
@@ -120,7 +127,8 @@ def generate_invoice(details, deposit_amount=150):
     # Invoice details table
     data = [
         ["Aprašymas", "Kiekis", "Vnt. kaina (be PVM)", "Suma be PVM"],
-        ["Užstatas mobilaus baro nuomai", "1,0", f"{deposit_amount:.2f} €", f"{deposit_amount:.2f} €"]
+        ["Užstatas mobilaus baro nuomai", "1,0",
+            f"{deposit_amount:.2f} €", f"{deposit_amount:.2f} €"]
     ]
 
     table = Table(data)
@@ -151,6 +159,7 @@ def generate_invoice(details, deposit_amount=150):
     print(f"Invoice saved as {file_name}")
     return file_name, invoice_number_str
 
+
 def test_generate_invoice():
     # Sample data for testing
     sample_details = {
@@ -163,10 +172,8 @@ def test_generate_invoice():
     }
     generate_invoice(sample_details)
 
-if __name__ == "__main__":
-    # Uncomment the following line to test with random details
-    # test_generate_invoice()
 
-    # Uncomment the following lines to run with actual user input
+if __name__ == "__main__":
+
     details = get_personal_details()
     generate_invoice(details)
