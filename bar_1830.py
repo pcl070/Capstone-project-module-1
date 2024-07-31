@@ -315,7 +315,7 @@ def confirm_details(details):
             print("Invalid input. Please enter yes or no.")
 
 
-def send_email(to_email, content, attachment_path1, attachment_path2):
+def send_email(to_email, content, attachment_path1, attachment_path2=None):
     from_email = config.FROM_EMAIL
     password = config.PASS_EMAIL
 
@@ -329,28 +329,32 @@ def send_email(to_email, content, attachment_path1, attachment_path2):
     msg.attach(MIMEText(content, "plain"))
 
     # Attach the first PDF file
-    with open(attachment_path1, "rb") as attachment1:
-        part1 = MIMEBase("application", "octet-stream")
-        part1.set_payload(attachment1.read())
+    if os.path.exists(attachment_path1):
+        with open(attachment_path1, "rb") as attachment1:
+            part1 = MIMEBase("application", "pdf")
+            part1.set_payload(attachment1.read())
+            encoders.encode_base64(part1)
+            part1.add_header(
+                "Content-Disposition",
+                f'attachment; filename="{os.path.basename(attachment_path1)}"',
+            )
+            msg.attach(part1)
+    else:
+        print(f"Attachment 1 does not exist: {attachment_path1}")
 
-    encoders.encode_base64(part1)
-    part1.add_header(
-        "Content-Disposition",
-        f'attachment; filename="{os.path.basename(attachment_path1)}"',
-    )
-    msg.attach(part1)
-
-    # Attach the second PDF file
-    with open(attachment_path2, "rb") as attachment2:
-        part2 = MIMEBase("application", "octet-stream")
-        part2.set_payload(attachment2.read())
-
-    encoders.encode_base64(part2)
-    part2.add_header(
-        "Content-Disposition",
-        f'attachment; filename="{os.path.basename(attachment_path2)}"',
-    )
-    msg.attach(part2)
+    # Attach the second PDF file if it exists
+    if attachment_path2 and os.path.exists(attachment_path2):
+        with open(attachment_path2, "rb") as attachment2:
+            part2 = MIMEBase("application", "pdf")
+            part2.set_payload(attachment2.read())
+            encoders.encode_base64(part2)
+            part2.add_header(
+                "Content-Disposition",
+                f'attachment; filename="{os.path.basename(attachment_path2)}"',
+            )
+            msg.attach(part2)
+    else:
+        print(f"Attachment 2 does not exist: {attachment_path2}")
 
     # Create SSL context
     context = ssl.create_default_context()
@@ -414,6 +418,179 @@ def save_user_data(data, file_path="user_data.json"):
     with open(file_path, "w") as f:
         json.dump(data, f, indent=4)
 
+def change_user_details(user):
+    def prompt_change(field_name, current_value):
+        new_value = input(f"Enter new {field_name} (current: {current_value}): ").strip()
+        return new_value if new_value else current_value
+
+    def display_change_menu():
+        print("\nWhat would you like to change?")
+        print("1. First name")
+        print("2. Last name")
+        print("3. Birth date")
+        print("4. Residency Address")
+        print("5. Phone Number")
+        print("6. Email")
+        print("7. Event date")
+        print("8. Venue")
+        print("9. Number of guests")
+        print("10. Working hours")
+        print("11. Overtime hours")
+        print("12. Exit")
+
+    def recalculate_event_details():
+        num_people = user["Number of guests"]
+        city = user["Venue"].split(",")[-1].strip()
+        distance_from_kaunas = 0
+
+        if city.lower() != "kaunas":
+            distance_from_kaunas = get_distance_from_kaunas(city)
+            transport_cost = distance_from_kaunas * 0.3 if distance_from_kaunas is not None else 0
+        else:
+            transport_cost = 0
+
+        num_barback = 0
+        if num_people <= 60:
+            num_bartenders = 2
+            base_cost = 650
+        elif num_people <= 80:
+            num_bartenders = 3
+            base_cost = 800
+        elif num_people <= 120:
+            num_bartenders = 4
+            base_cost = 1050
+        else:
+            num_bartenders = 4
+            num_barback = 1
+            base_cost = 1400
+
+        overtime_cost = user["Overtime hours"] * (50 * num_bartenders + (40 if num_barback else 0))
+        total_cost = math.ceil(base_cost + transport_cost + overtime_cost)
+
+        user["Number of bartenders"] = num_bartenders
+        user["Number of barbacks"] = num_barback
+        user["Base cost"] = base_cost
+        user["Transport cost"] = transport_cost
+        user["Overtime cost"] = overtime_cost
+        user["Total cost"] = total_cost
+
+    while True:
+        display_change_menu()
+        choice = input("Enter the number of the detail you want to change: ").strip()
+        
+        if choice == '1':
+            user["First name"] = prompt_change("First name", user["First name"])
+        elif choice == '2':
+            user["Last name"] = prompt_change("Last name", user["Last name"])
+        elif choice == '3':
+            # Validate birth date
+            while True:
+                birth_date = input(f"Enter new birth date (yyyy-mm-dd) (current: {user['Birth date']}): ").strip()
+                if not birth_date:
+                    break
+                if re.match(r'\d{4}-\d{2}-\d{2}', birth_date):
+                    try:
+                        birth_date_parsed = datetime.strptime(birth_date, '%Y-%m-%d')
+                        today = datetime.today()
+                        age = (today - birth_date_parsed).days // 365
+                        if age >= 18:
+                            user["Birth date"] = birth_date
+                            break
+                        else:
+                            print("You must be at least 18 years old.")
+                    except ValueError:
+                        print("Invalid date format. Please enter a valid date.")
+                else:
+                    print("Invalid date format. Please enter in yyyy-mm-dd format.")
+        elif choice == '4':
+            user["Residency Address"] = prompt_change("Residency Address", user["Residency Address"])
+        elif choice == '5':
+            user["Phone Number"] = prompt_change("Phone Number", user["Phone Number"])
+        elif choice == '6':
+            user["Email"] = prompt_change("Email", user["Email"])
+        elif choice == '7':
+            while True:
+                new_event_date = input(f"Enter new event date (yyyy-mm-dd) (current: {user['Event date']}): ").strip()
+                if not new_event_date:
+                    break
+                if re.match(r'\d{4}-\d{2}-\d{2}', new_event_date):
+                    try:
+                        new_event_date_parsed = datetime.strptime(new_event_date, '%Y-%m-%d')
+                        if new_event_date_parsed > datetime.today():
+                            user["Event date"] = new_event_date
+                            break
+                        else:
+                            print("The event date must be a future date.")
+                    except ValueError:
+                        print("Invalid date format. Please enter a valid date.")
+                else:
+                    print("Invalid date format. Please enter in yyyy-mm-dd format.")
+        elif choice == '8':
+            user["Venue"] = prompt_change("Venue", user["Venue"])
+            recalculate_event_details()
+        elif choice == '9':
+            # Validate number of guests
+            while True:
+                num_guests = input(f"Enter new number of guests (current: {user['Number of guests']}): ").strip()
+                if not num_guests:
+                    break
+                try:
+                    num_guests = int(num_guests)
+                    if 1 <= num_guests <= 200:
+                        user["Number of guests"] = num_guests
+                        recalculate_event_details()
+                        break
+                    else:
+                        print("We can not serve that many guests. Please enter a number between 1 and 200.")
+                except ValueError:
+                    print("Invalid number. Please enter a valid number.")
+        elif choice == '10':
+            user["Working hours"] = prompt_change("Working hours", user["Working hours"])
+        elif choice == '11':
+            # Validate overtime hours
+            while True:
+                overtime_hours = input(f"Enter new overtime hours (current: {user['Overtime hours']}): ").strip()
+                if not overtime_hours:
+                    break
+                try:
+                    overtime_hours = int(overtime_hours)
+                    user["Overtime hours"] = overtime_hours
+                    recalculate_event_details()
+                    break
+                except ValueError:
+                    print("Invalid number. Please enter a valid number.")
+        elif choice == '12':
+            break
+        else:
+            print("Invalid choice. Please enter a number from the menu.")
+
+    # Set Contract signed to False
+    user["Contract signed"] = False
+
+    # Regenerate the contract
+    contract_file = person_contract.generate_contract(user)
+
+    # Verify if the contract file exists and its size
+    if os.path.exists(contract_file):
+        print(f"Generated contract file: {contract_file}")
+        print(f"Contract file size: {os.path.getsize(contract_file)} bytes")
+    else:
+        print(f"Failed to generate contract file: {contract_file}")
+
+    # Send updated contract via email
+    email_content = f"Sveiki,\n\nSiunčiame Jums atnaujintą mobilaus baro sutartį Jūsų šventei kuri vyks {user['Event date']}.\n\nLinkėjimai,\nMB Double Vision"
+    send_email(user["Email"], email_content, contract_file)  # Assuming invoice is not needed here
+
+    print("Details updated and contract regenerated. Please sign the new contract.")
+
+    # Save updated user data to JSON file
+    user_data = load_user_data()
+    for i, usr in enumerate(user_data):
+        if usr["ID"] == user["ID"]:
+            user_data[i] = user
+            break
+    save_user_data(user_data)
+
 
 def login():
     user_data = load_user_data()
@@ -454,6 +631,8 @@ def register():
     email_content = f"Sveiki,\n\nSiunčiame Jums sugeneruotą mobilaus baro sutartį bei sąskaitą užstato apmokėjimui Jūsų šventei kuri vyks {details['Event date']}.\n\nLinkėjimai,\nMB Double Vision"
     send_email(details["Email"], email_content, contract_file, invoice)
 
+    details["Contract signed"] = False
+    details["Deposit paid"] = False
     save_to_json(details, invoice_number)
 
     print(f"\nYOUR LOGIN ID IS {details['ID']}\n")
@@ -463,41 +642,60 @@ def display_menu():
     print("\nMenu:")
     print("1. Sign contract")
     print("2. Pay deposit for event")
-    print("3. Select cocktails/change cocktails")
-    print("4. View details of personal and event data")
-    print("5. Change details of personal and event data")
-    print("6. Cancel booking and delete account")
-    print("7. Exit")
+    print("3. View details of personal and event data")
+    print("4. Change details of personal and event data")
+    print("5. Cancel booking and delete account")
+    print("6. Exit")
 
 
 def handle_menu_choice(user):
+    user_data = load_user_data()
     while True:
         display_menu()
         choice = input("Enter your choice: ").strip()
-        if choice == "1":
+        if choice == '1':
             print("Sign contract selected.")
-            # Implement signing contract
-        elif choice == "2":
+            user["Contract signed"] = True
+            print("Contract signed successfully.")
+        elif choice == '2':
             print("Pay deposit for event selected.")
-            # Implement paying deposit
-        elif choice == "3":
-            print("Select/change cocktails selected.")
-            # Implement selecting/changing cocktails
-        elif choice == "4":
+            user["Deposit paid"] = True
+            print("Deposit paid successfully.")
+        elif choice == '3':
             print("View details of personal and event data selected.")
-            # Implement viewing details
-        elif choice == "5":
+            print(json.dumps(user, indent=4))  # Display user details
+        elif choice == '4':
             print("Change details of personal and event data selected.")
-            # Implement changing details
-        elif choice == "6":
+            change_user_details(user)
+        elif choice == '5':
             print("Cancel booking and delete account selected.")
-            # Implement cancelling booking and deleting account
-            return False
-        elif choice == "7":
+            
+            if user["Deposit paid"]:
+                print("Warning: Your deposit will not be returned upon cancelling the booking and deleting the account.")
+            
+            confirm_delete = input("Are you sure you want to delete your account and cancel the booking? (yes/no): ").strip().lower()
+            
+            if confirm_delete == 'yes':
+                user_data = [usr for usr in user_data if usr["ID"] != user["ID"]]
+                save_user_data(user_data)
+                print("We are sorry to see you go. Your account and booking were successfully deleted.")
+                return False
+            else:
+                print("Account deletion and booking cancellation aborted.")
+        elif choice == '6':
             print("Exiting...")
             return False
         else:
             print("Invalid choice. Please try again.")
+
+        # Update user data in JSON file after changes
+        for i, usr in enumerate(user_data):
+            if usr["ID"] == user["ID"]:
+                user_data[i] = user
+                break
+        save_user_data(user_data)
+
+
 
 
 def view_all_bookings():
@@ -505,8 +703,21 @@ def view_all_bookings():
     if not user_data:
         print("No bookings found.")
         return
+
+    # Convert event date strings to datetime objects for sorting
     for user in user_data:
-        print(f"ID: {user['ID']}, Name: {user['First name']} {user['Last name']}")
+        user['Event date'] = datetime.strptime(user['Event date'], '%Y-%m-%d')
+
+    # Sort users by event date
+    user_data.sort(key=lambda x: x['Event date'])
+
+    # Print sorted user data with event date first, then name, then ID
+    for user in user_data:
+        print(f"{user['Event date'].strftime('%Y-%m-%d')}, {user['First name']} {user['Last name']}, ID: {user['ID']}")
+
+    # Convert event date back to string for future use
+    for user in user_data:
+        user['Event date'] = user['Event date'].strftime('%Y-%m-%d')
 
 
 def view_booking_by_id():
@@ -524,9 +735,22 @@ def delete_booking():
     user_id = input("Enter the booking ID to delete: ").strip()
     for user in user_data:
         if str(user["ID"]) == user_id:
-            user_data.remove(user)
-            save_user_data(user_data)
-            print("Booking deleted.")
+            # Display user details for confirmation
+            print(f"\nAre you sure you want to delete the following booking?\n"
+                  f"Event Date: {user['Event date']}\n"
+                  f"Name: {user['First name']} {user['Last name']}\n"
+                  f"ID: {user['ID']}\n"
+                  f"Total Cost: {user['Total cost']}\n"
+                  f"Deposit Paid: {user['Deposit paid']}")
+
+            # Ask for confirmation
+            confirm = input("Type 'yes' to confirm deletion, or 'no' to cancel: ").strip().lower()
+            if confirm == 'yes':
+                user_data.remove(user)
+                save_user_data(user_data)
+                print("Booking deleted. We are sorry to see you go.")
+            else:
+                print("Deletion canceled.")
             return
     print("Booking ID not found.")
 
@@ -538,8 +762,8 @@ def change_booking_info():
         if str(user["ID"]) == user_id:
             print("Current booking details:")
             print(json.dumps(user, indent=4))
-            # Implement the logic to change booking details here
-            print("Feature to change booking info is not yet implemented.")
+            # Use the existing change_user_details function to modify user details
+            change_user_details(user)
             return
     print("Booking ID not found.")
 
