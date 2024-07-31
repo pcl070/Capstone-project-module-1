@@ -7,8 +7,9 @@ from reportlab.pdfbase import pdfmetrics
 from datetime import datetime, timedelta
 from num2words import num2words
 
-# Register the DejaVuSans font
+
 pdfmetrics.registerFont(TTFont('DejaVuSans', 'DejaVuSans.ttf'))
+
 
 def convert_cost_to_lithuanian_words(number):
     words = num2words(number, lang='en')
@@ -50,10 +51,10 @@ def convert_cost_to_lithuanian_words(number):
 
     translated_words = []
     for word in words.split():
-        # Split hyphenated compound words (e.g., "twenty-one")
         if '-' in word:
             parts = word.split('-')
-            translated_parts = [translation_dict.get(part, part) for part in parts]
+            translated_parts = [translation_dict.get(
+                part, part) for part in parts]
             translated_words.append(' '.join(translated_parts))
         else:
             translated_words.append(translation_dict.get(word, word))
@@ -80,7 +81,6 @@ def generate_contract(details):
     doc = SimpleDocTemplate(file_name, pagesize=A4)
     styles = getSampleStyleSheet()
 
-    # Custom style for contract text
     contract_style = ParagraphStyle(
         'Contract',
         fontName='DejaVuSans',
@@ -94,23 +94,21 @@ def generate_contract(details):
         fontName='DejaVuSans',
         fontSize=12,
         leading=16,
-        alignment=1,  # Center alignment
+        alignment=1,
         spaceAfter=14
     )
 
     elements = []
 
-    # Title
     title = Paragraph("MOBILAUS BARO NUOMOS SUTARTIS", styles['Title'])
     elements.append(title)
     elements.append(Spacer(1, 12))
 
-    # Date and Location (centered)
-    date_location = Paragraph(f"{datetime.now().strftime('%Y-%m-%d')}<br/>Kaunas", centered_style)
+    date_location = Paragraph(
+        f"{datetime.now().strftime('%Y-%m-%d')}<br/>Kaunas", centered_style)
     elements.append(date_location)
     elements.append(Spacer(1, 12))
 
-    # Contract Content in Paragraphs
     content = [
         f"{first_name} {last_name}, gim. {birth_date}, gyv. {address} (toliau – Nuomininkas) ir Double Vision, MB, įm. k. 306318735, reg. adresas Žeimenos g. 82D-24, Kaunas (toliau – Nuomotojas) sudarė šią sutartį (toliau – Sutartis).",
         "<b>1.Sutarties objektas</b>",
@@ -140,8 +138,9 @@ def generate_contract(details):
     print(f"Contract saved as {file_name}")
     return file_name
 
+
 if __name__ == "__main__":
-    #Define some example details
+
     details = {
         "First name": "John",
         "Last name": "Doe",
