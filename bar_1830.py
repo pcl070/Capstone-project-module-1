@@ -175,18 +175,21 @@ def get_event_details():
         input("Do you want to change the working hours? (yes/no): ").strip().lower()
     )
     if change_hours == "yes":
-        working_hours = input("Enter the new working hours (e.g., 18:00-02:00): ")
+        working_hours = input(
+            "Enter the new working hours (e.g., 18:00-02:00): ")
 
     overtime_hours = 0
     if input("Do you want overtime? (yes/no): ").strip().lower() == "yes":
         while True:
             try:
-                overtime_hours = int(input("Enter the number of overtime hours: "))
+                overtime_hours = int(
+                    input("Enter the number of overtime hours: "))
                 break
             except ValueError:
                 print("Invalid number. Please enter a valid number.")
 
-    overtime_cost = overtime_hours * (50 * num_bartenders + (40 if num_barback else 0))
+    overtime_cost = overtime_hours * \
+        (50 * num_bartenders + (40 if num_barback else 0))
 
     total_cost = math.ceil(base_cost + transport_cost + overtime_cost)
 
@@ -223,7 +226,8 @@ def get_distance_from_kaunas(city):
             distance_in_meters = data["rows"][0]["elements"][0]["distance"]["value"]
             return distance_in_meters / 1000  # Convert to kilometers
         else:
-            print("Error in response:", data["rows"][0]["elements"][0]["status"])
+            print("Error in response:",
+                  data["rows"][0]["elements"][0]["status"])
             return None
     else:
         print("Failed to connect to API")
@@ -388,9 +392,11 @@ def save_user_data(data, file_path="user_data.json"):
     with open(file_path, "w") as f:
         json.dump(data, f, indent=4)
 
+
 def change_user_details(user):
     def prompt_change(field_name, current_value):
-        new_value = input(f"Enter new {field_name} (current: {current_value}): ").strip()
+        new_value = input(
+            f"Enter new {field_name} (current: {current_value}): ").strip()
         return new_value if new_value else current_value
 
     def display_change_menu():
@@ -415,7 +421,8 @@ def change_user_details(user):
 
         if city.lower() != "kaunas":
             distance_from_kaunas = get_distance_from_kaunas(city)
-            transport_cost = distance_from_kaunas * 0.3 if distance_from_kaunas is not None else 0
+            transport_cost = distance_from_kaunas * \
+                0.3 if distance_from_kaunas is not None else 0
         else:
             transport_cost = 0
 
@@ -434,7 +441,8 @@ def change_user_details(user):
             num_barback = 1
             base_cost = 1400
 
-        overtime_cost = user["Overtime hours"] * (50 * num_bartenders + (40 if num_barback else 0))
+        overtime_cost = user["Overtime hours"] * \
+            (50 * num_bartenders + (40 if num_barback else 0))
         total_cost = math.ceil(base_cost + transport_cost + overtime_cost)
 
         user["Number of bartenders"] = num_bartenders
@@ -446,21 +454,25 @@ def change_user_details(user):
 
     while True:
         display_change_menu()
-        choice = input("Enter the number of the detail you want to change: ").strip()
-        
+        choice = input(
+            "Enter the number of the detail you want to change: ").strip()
+
         if choice == '1':
-            user["First name"] = prompt_change("First name", user["First name"])
+            user["First name"] = prompt_change(
+                "First name", user["First name"])
         elif choice == '2':
             user["Last name"] = prompt_change("Last name", user["Last name"])
         elif choice == '3':
             # Validate birth date
             while True:
-                birth_date = input(f"Enter new birth date (yyyy-mm-dd) (current: {user['Birth date']}): ").strip()
+                birth_date = input(
+                    f"Enter new birth date (yyyy-mm-dd) (current: {user['Birth date']}): ").strip()
                 if not birth_date:
                     break
                 if re.match(r'\d{4}-\d{2}-\d{2}', birth_date):
                     try:
-                        birth_date_parsed = datetime.strptime(birth_date, '%Y-%m-%d')
+                        birth_date_parsed = datetime.strptime(
+                            birth_date, '%Y-%m-%d')
                         today = datetime.today()
                         age = (today - birth_date_parsed).days // 365
                         if age >= 18:
@@ -473,19 +485,23 @@ def change_user_details(user):
                 else:
                     print("Invalid date format. Please enter in yyyy-mm-dd format.")
         elif choice == '4':
-            user["Residency Address"] = prompt_change("Residency Address", user["Residency Address"])
+            user["Residency Address"] = prompt_change(
+                "Residency Address", user["Residency Address"])
         elif choice == '5':
-            user["Phone Number"] = prompt_change("Phone Number", user["Phone Number"])
+            user["Phone Number"] = prompt_change(
+                "Phone Number", user["Phone Number"])
         elif choice == '6':
             user["Email"] = prompt_change("Email", user["Email"])
         elif choice == '7':
             while True:
-                new_event_date = input(f"Enter new event date (yyyy-mm-dd) (current: {user['Event date']}): ").strip()
+                new_event_date = input(
+                    f"Enter new event date (yyyy-mm-dd) (current: {user['Event date']}): ").strip()
                 if not new_event_date:
                     break
                 if re.match(r'\d{4}-\d{2}-\d{2}', new_event_date):
                     try:
-                        new_event_date_parsed = datetime.strptime(new_event_date, '%Y-%m-%d')
+                        new_event_date_parsed = datetime.strptime(
+                            new_event_date, '%Y-%m-%d')
                         if new_event_date_parsed > datetime.today():
                             user["Event date"] = new_event_date
                             break
@@ -501,7 +517,8 @@ def change_user_details(user):
         elif choice == '9':
             # Validate number of guests
             while True:
-                num_guests = input(f"Enter new number of guests (current: {user['Number of guests']}): ").strip()
+                num_guests = input(
+                    f"Enter new number of guests (current: {user['Number of guests']}): ").strip()
                 if not num_guests:
                     break
                 try:
@@ -511,15 +528,18 @@ def change_user_details(user):
                         recalculate_event_details()
                         break
                     else:
-                        print("We can not serve that many guests. Please enter a number between 1 and 200.")
+                        print(
+                            "We can not serve that many guests. Please enter a number between 1 and 200.")
                 except ValueError:
                     print("Invalid number. Please enter a valid number.")
         elif choice == '10':
-            user["Working hours"] = prompt_change("Working hours", user["Working hours"])
+            user["Working hours"] = prompt_change(
+                "Working hours", user["Working hours"])
         elif choice == '11':
             # Validate overtime hours
             while True:
-                overtime_hours = input(f"Enter new overtime hours (current: {user['Overtime hours']}): ").strip()
+                overtime_hours = input(
+                    f"Enter new overtime hours (current: {user['Overtime hours']}): ").strip()
                 if not overtime_hours:
                     break
                 try:
@@ -549,7 +569,8 @@ def change_user_details(user):
 
     # Send updated contract via email
     email_content = f"Sveiki,\n\nSiunčiame Jums atnaujintą mobilaus baro sutartį Jūsų šventei kuri vyks {user['Event date']}.\n\nLinkėjimai,\nMB Double Vision"
-    send_email(user["Email"], email_content, contract_file)  # Assuming invoice is not needed here
+    # Assuming invoice is not needed here
+    send_email(user["Email"], email_content, contract_file)
 
     print("Details updated and contract regenerated. Please sign the new contract.")
 
@@ -639,16 +660,20 @@ def handle_menu_choice(user):
             change_user_details(user)
         elif choice == '5':
             print("Cancel booking and delete account selected.")
-            
+
             if user["Deposit paid"]:
-                print("Warning: Your deposit will not be returned upon cancelling the booking and deleting the account.")
-            
-            confirm_delete = input("Are you sure you want to delete your account and cancel the booking? (yes/no): ").strip().lower()
-            
+                print(
+                    "Warning: Your deposit will not be returned upon cancelling the booking and deleting the account.")
+
+            confirm_delete = input(
+                "Are you sure you want to delete your account and cancel the booking? (yes/no): ").strip().lower()
+
             if confirm_delete == 'yes':
-                user_data = [usr for usr in user_data if usr["ID"] != user["ID"]]
+                user_data = [
+                    usr for usr in user_data if usr["ID"] != user["ID"]]
                 save_user_data(user_data)
-                print("We are sorry to see you go. Your account and booking were successfully deleted.")
+                print(
+                    "We are sorry to see you go. Your account and booking were successfully deleted.")
                 return False
             else:
                 print("Account deletion and booking cancellation aborted.")
@@ -666,8 +691,6 @@ def handle_menu_choice(user):
         save_user_data(user_data)
 
 
-
-
 def view_all_bookings():
     user_data = load_user_data()
     if not user_data:
@@ -683,7 +706,8 @@ def view_all_bookings():
 
     # Print sorted user data with event date first, then name, then ID
     for user in user_data:
-        print(f"{user['Event date'].strftime('%Y-%m-%d')}, {user['First name']} {user['Last name']}, ID: {user['ID']}")
+        print(
+            f"{user['Event date'].strftime('%Y-%m-%d')}, {user['First name']} {user['Last name']}, ID: {user['ID']}")
 
     # Convert event date back to string for future use
     for user in user_data:
@@ -714,7 +738,8 @@ def delete_booking():
                   f"Deposit Paid: {user['Deposit paid']}")
 
             # Ask for confirmation
-            confirm = input("Type 'yes' to confirm deletion, or 'no' to cancel: ").strip().lower()
+            confirm = input(
+                "Type 'yes' to confirm deletion, or 'no' to cancel: ").strip().lower()
             if confirm == 'yes':
                 user_data.remove(user)
                 save_user_data(user_data)
