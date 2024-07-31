@@ -1,71 +1,5 @@
 [
     {
-        "First name": "Viktoraz",
-        "Last name": "P\u010dalinas",
-        "Birth date": "1967-06-26",
-        "Residency Address": "Voskoniu g. 13, Kaunas",
-        "Phone Number": "+353",
-        "Email": "andrius.pcalinas@gmail.com",
-        "Event date": "2025-05-05",
-        "Venue": "Puodziu g. 20, Kaunas",
-        "Number of guests": 54,
-        "Number of bartenders": 2,
-        "Number of barbacks": 0,
-        "Working hours": "17:00-01:00",
-        "Overtime hours": 1,
-        "Total cost": 750,
-        "City": "Kaunas",
-        "Base cost": 650,
-        "Transport cost": 0,
-        "Overtime cost": 100,
-        "ID": "c9d720ba-42d3-4c3c-89ee-803a36c40c1d",
-        "Contract signed": false
-    },
-    {
-        "First name": "Andrius",
-        "Last name": "P\u010dalinas",
-        "Birth date": "1996-06-07",
-        "Residency Address": "Stirn\u0173 g. 66, Noreiki\u0161k\u0117s",
-        "Phone Number": "+37065454447",
-        "Email": "andrius.pcalinas@gmail.com",
-        "Event date": "2025-05-26",
-        "Venue": "Puod\u017ei\u0173 g. 20, Kaunas",
-        "Number of guests": 54,
-        "Number of bartenders": 2,
-        "Number of barbacks": 0,
-        "Working hours": "18:00-02:00",
-        "Overtime hours": 1,
-        "Total cost": 750,
-        "City": "Kaunas",
-        "Base cost": 650,
-        "Transport cost": 0,
-        "Overtime cost": 100,
-        "ID": "0b125612-5326-442d-a401-02c1a859a6da",
-        "Invoice Number": "PROFORMA/001"
-    },
-    {
-        "First name": "Rokas",
-        "Last name": "Staniulis",
-        "Birth date": "1995-01-01",
-        "Residency Address": "Gatve g. 13, Kaunas",
-        "Phone Number": "+37068989898",
-        "Email": "rokasstaniulis96@gmail.com",
-        "Event date": "2028-05-25",
-        "Venue": "Mi\u0161ko g. 20, Kaunas",
-        "Number of guests": 85,
-        "Number of bartenders": 4,
-        "Number of barbacks": 0,
-        "Working hours": "17:00-01:00",
-        "Overtime hours": 1,
-        "Total cost": 1250,
-        "City": "Kaunas",
-        "Base cost": 1050,
-        "Transport cost": 0,
-        "Overtime cost": 200,
-        "ID": "c5b787c1-8515-4d2b-a2f0-81b2dda9f1c0",
-        "Invoice Number": "PROFORMA/002"
-    },
-    {
         "First name": "Andrius",
         "Last name": "Ppppp",
         "Birth date": "1956-06-08",
@@ -86,7 +20,8 @@
         "Overtime cost": 0,
         "ID": 30295,
         "Invoice Number": "PROFORMA/004",
-        "Contract signed": false
+        "Contract signed": false,
+        "Deposit paid": true
     },
     {
         "First name": "Romas",
@@ -109,7 +44,8 @@
         "Overtime cost": 0,
         "ID": 66705,
         "Invoice Number": "PROFORMA/005",
-        "Contract signed": false
+        "Contract signed": false,
+        "Deposit paid": true
     },
     {
         "First name": "Rokas",
@@ -131,7 +67,9 @@
         "Transport cost": 0,
         "Overtime cost": 100,
         "ID": 48864,
-        "Invoice Number": "PROFORMA/006"
+        "Invoice Number": "PROFORMA/006",
+        "Deposit paid": true,
+        "Contract signed": true
     },
     {
         "First name": "Mantas",
@@ -153,7 +91,9 @@
         "Transport cost": 0,
         "Overtime cost": 0,
         "ID": 71030,
-        "Invoice Number": "PROFORMA/007"
+        "Invoice Number": "PROFORMA/007",
+        "Contract signed": true,
+        "Deposit paid": true
     },
     {
         "First name": "Mantvydas",
@@ -175,7 +115,9 @@
         "Transport cost": 0,
         "Overtime cost": 100,
         "ID": 76024,
-        "Invoice Number": "PROFORMA/008"
+        "Invoice Number": "PROFORMA/008",
+        "Contract signed": true,
+        "Deposit paid": true
     },
     {
         "First name": "Zygimantas",
@@ -197,7 +139,9 @@
         "Transport cost": 0,
         "Overtime cost": 0,
         "ID": 31678,
-        "Invoice Number": "PROFORMA/009"
+        "Invoice Number": "PROFORMA/009",
+        "Contract signed": true,
+        "Deposit paid": true
     },
     {
         "First name": "Rimantas",
@@ -221,7 +165,54 @@
         "Contract signed": false,
         "Deposit paid": true,
         "ID": 96238,
-        "Invoice Number": "PROFORMA/010",
-        "is_company": false
+        "Invoice Number": "PROFORMA/010"
+    },
+    {
+        "First name": "Laurynas",
+        "Last name": "Dauk\u0161a",
+        "Birth date": "1995-08-07",
+        "Residency Address": "Rytmecio g. 15, Vilnius",
+        "Phone Number": "+3709858685",
+        "Email": "andrius.pcalinas@gmail.com",
+        "Event date": "2026-05-01",
+        "Venue": "Nidos g. 13, Nida",
+        "Number of guests": 50,
+        "Number of bartenders": 2,
+        "Number of barbacks": 0,
+        "Working hours": "16:00-00:00",
+        "Overtime hours": 1,
+        "Total cost": 1183,
+        "City": "Nida",
+        "Base cost": 650,
+        "Transport cost": 432.6522,
+        "Overtime cost": 100,
+        "Contract signed": false,
+        "Deposit paid": false,
+        "ID": 30288,
+        "Invoice Number": "PROFORMA/011"
+    },
+    {
+        "First name": "Tomas",
+        "Last name": "Tomauskas",
+        "Birth date": "1998-06-09",
+        "Residency Address": "Kauno g., Kaunas",
+        "Phone Number": "+3706858985",
+        "Email": "andrius.pcalinas@gmail.com",
+        "Event date": "2024-12-25",
+        "Venue": "Saul\u0117s g. 116, Vilnius",
+        "Number of guests": 65,
+        "Number of bartenders": 3,
+        "Number of barbacks": 0,
+        "Working hours": "16:00-00:00",
+        "Overtime hours": 0,
+        "Total cost": 831,
+        "City": "Kaunas",
+        "Base cost": 800,
+        "Transport cost": 30.3846,
+        "Overtime cost": 0,
+        "Contract signed": false,
+        "Deposit paid": false,
+        "ID": 56225,
+        "Invoice Number": "PROFORMA/012"
     }
 ]
