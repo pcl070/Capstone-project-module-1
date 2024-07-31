@@ -1,6 +1,8 @@
 # 1830 Mobile Bar Booking System
 
-![Logo](logo.png)
+<p align="center">
+  <img src="logo.png" alt="1830 Bar Logo" width="100"/>
+</p>
 
 ## Table of Contents
 - [Description](#description)
